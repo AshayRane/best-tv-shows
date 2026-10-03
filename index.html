@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 100 Best TV Shows of the 21st Century</title>
+<style>
+  :root {
+    --ink: #121212;
+    --paper: #fbfaf7;
+    --muted: #6b6b6b;
+    --line: #e2ded4;
+    --accent: #b03030;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.45;
+  }
+  header {
+    border-bottom: 3px double var(--ink);
+    padding: 48px 32px 20px;
+    text-align: center;
+  }
+  .kicker {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header p.source {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 12px 0 0;
+  }
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    padding: 18px 32px 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }
+  button {
+    font: inherit;
+    font-size: 13px;
+    padding: 7px 14px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  button:hover { background: var(--ink); color: var(--paper); }
+  #status {
+    font-size: 13px;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+  main {
+    columns: 2;
+    column-gap: 48px;
+    padding: 28px 32px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  ol { list-style: none; margin: 0; padding: 0; }
+  li {
+    break-inside: avoid;
+    display: grid;
+    grid-template-columns: 2.2rem 1fr auto auto;
+    gap: 10px;
+    align-items: baseline;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+  }
+  li.hidden { display: none; }
+  .rank {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+  }
+  .title { font-weight: 700; }
+  .years, .col-label {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .col-label { display: none; }
+  li.watched .title::after {
+    content: " ✓";
+    color: var(--accent);
+  }
+  input[type="checkbox"] { accent-color: var(--accent); }
+  footer {
+    border-top: 3px double var(--ink);
+    padding: 16px 32px 40px;
+    text-align: center;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  @media (max-width: 720px) {
+    main { columns: 1; }
+    li { grid-template-columns: 2rem 1fr auto; }
+    .col-label { display: none; }
+  }
+  @media print {
+    .tools { display: none; }
+    main { columns: 2; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The New York Times</p>
+  <h1>The 100 Best TV Shows of the 21st Century</h1>
+  <p class="source">Explore the list at nytimes.com/bestTV</p>
+</header>
+
+<div class="tools">
+  <button id="markAll">I've seen it all</button>
+  <button id="clearAll">Clear all</button>
+  <span id="status"></span>
+</div>
+
+<main>
+  <ol id="list"></ol>
+</main>
+
+<footer>Interactive checklist &middot; progress saved in this browser</footer>
+
+<script>
+const SHOWS = [
+  ["Breaking Bad","2008-2013"],
+  ["The Wire","2002-2008"],
+  ["Mad Men","2007-2015"],
+  ["Succession","2018-2023"],
+  ["Fleabag","2016-2019"],
+  ["Game of Thrones","2011-2019"],
+  ["Veep","2012-2019"],
+  ["30 Rock","2006-2013"],
+  ["Curb Your Enthusiasm","2000-2024"],
+  ["Atlanta","2016-2022"],
+  ["The Office (U.S.)","2005-2013"],
+  ["Arrested Development","2003-2019"],
+  ["Gits","2012-2017"],
+  ["Friday Night Lights","2006-2011"],
+  ["Six Feet Under","2001-2005"],
+  ["The Office (U.K.)","2001-2003"],
+  ["The Americans","2013-2018"],
+  ["I May Destroy You","2020"],
+  ["Chernobyl","2019"],
+  ["The Crown","2016-2023"],
+  ["The White Lotus","2021-present"],
+  ["Lost","2004-2010"],
+  ["The Comeback","2005-2026"],
+  ["Deadwood","2004-2006"],
+  ["The Leftovers","2014-2017"],
+  ["Black Mirror","2011-present"],
+  ["Better Call Saul","2015-2022"],
+  ["Band of Brothers","2001"],
+  ["Key & Peele","2012-2015"],
+  ["Severance","2022-present"],
+  ["Survivor","2000-present"],
+  ["Andor","2022-2025"],
+  ["Enlightened","2011-2013"],
+  ["Schitt's Creek","2015-2020"],
+  ["True Detective (Season 1)","2014"],
+  ["The Pitt","2025-present"],
+  ["Battlestar Galactica","2005-2009"],
+  ["Homeland","2011-2020"],
+  ["Watchmen","2019"],
+  ["Adolescence","2025"],
+  ["Louie","2010-2015"],
+  ["Hacks","2021-2025"],
+  ["Peaky Blinders","2013-2022"],
+  ["BoJack Horseman","2014-2020"],
+  ["Happy Valley","2014-2023"],
+  ["Broad City","2014-2018"],
+  ["Twin Peaks: The Return","2017"],
+  ["House of Cards","2013-2018"],
+  ["Normal People","2020"],
+  ["Parks and Recreation","2009-2015"],
+  ["The Good Place","2016-2020"],
+  ["Downton Abbey","2010-2015"],
+  ["Stranger Things","2016-2025"],
+  ["The Bureau","2015-2020"],
+  ["Insecure","2021-2025"],
+  ["Nathan for You","2013-2017"],
+  ["I Think You Should Leave","2019-present"],
+  ["Chappelle's Show","2003-2006"],
+  ["PEN15","2019-2021"],
+  ["Peep Show","2003-2015"],
+  ["RuPaul's Drag Race","2009-present"],
+  ["Slow Horses","2022-present"],
+  ["The Thick of It","2005-2012"],
+  ["Anthony Bourdain: Parts Unknown","2013-2018"],
+  ["Mare of Easttown","2021"],
+  ["The Rehearsal","2022-present"],
+  ["The Handmaid's Tale","2017-2025"],
+  ["Ozark","2017-2022"],
+  ["Anthony Bourdain: No Reservations","2005-2012"],
+  ["The Shield","2002-2008"],
+  ["Beef (Season 1)","2023"],
+  ["Squid Game","2021-2025"],
+  ["Barry","2018-2023"],
+  ["The Bear","2022-2026"],
+  ["Ted Lasso","2020-present"],
+  ["Somebody Somewhere","2022-2024"],
+  ["Modern Family","2009-2019"],
+  ["It's Always Sunny in Philadelphia","2005-present"],
+  ["The Good Wife","2009-2016"],
+  ["How To With John Wilson","2020-2023"],
+  ["The Queen's Gambit","2020"],
+  ["Better Things","2016-2022"],
+  ["Justified","2010-2015"],
+  ["Planet Earth","2006"],
+  ["The Great British Baking Show","2010-present"],
+  ["Shogun","2024-present"],
+  ["Reservation Dogs","2021-2023"],
+  ["Dexter","2006-2013"],
+  ["Baby Reindeer","2024"],
+  ["Eastbound & Down","2009-2013"],
+  ["Catastrophe","2015-2019"],
+  ["The Night Of","2016"],
+  ["Station Eleven","2021-2022"],
+  ["The Diplomat","2023-present"],
+  ["House","2004-2012"],
+  ["Halt and Catch Fire","2014-2017"],
+  ["Community","2009-2015"],
+  ["The OA","2016-2019"],
+  ["Gilmore Girls","2000-2007"],
+  ["Scandal","2012-2018"]
+];
+
+const KEY = "nyt-best-tv-100";
+const list = document.getElementById("list");
+const status = document.getElementById("status");
+let seen = new Set(JSON.parse(localStorage.getItem(KEY) || "[]"));
+
+SHOWS.forEach(([title, years], i) => {
+  const li = document.createElement("li");
+  li.dataset.title = title;
+  li.innerHTML =
+    '<span class="rank">' + (i + 1) + '.</span>' +
+    '<span class="title"></span>' +
+    '<span class="years">' + years + '</span>' +
+    '<span class="col-label">I&#39;VE SEEN IT</span>';
+  li.querySelector(".title").textContent = title;
+
+  const seenBox = document.createElement("input");
+  seenBox.type = "checkbox";
+  seenBox.checked = seen.has(title);
+  seenBox.addEventListener("change", () => {
+    if (seenBox.checked) seen.add(title); else seen.delete(title);
+    li.classList.toggle("watched", seenBox.checked);
+    save();
+  });
+  li.appendChild(seenBox);
+  if (seenBox.checked) li.classList.add("watched");
+  list.appendChild(li);
+});
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify([...seen]));
+  status.textContent = seen.size + " of 100 watched";
+}
+
+document.getElementById("markAll").addEventListener("click", () => {
+  SHOWS.forEach(([t]) => seen.add(t));
+  render();
+});
+
+document.getElementById("clearAll").addEventListener("click", () => {
+  seen.clear();
+  render();
+});
+
+function render() {
+  list.querySelectorAll("li").forEach(li => {
+    const on = seen.has(li.dataset.title);
+    li.querySelector("input").checked = on;
+    li.classList.toggle("watched", on);
+  });
+  save();
+}
+
+save();
+</script>
+</body>
+</html>
