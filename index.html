@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The 100 Best TV Shows of the 21st Century</title>
+<title>The 100 Best TV Shows of the 21st Century — Where to Watch in India</title>
 <style>
   :root {
     --ink: #121212;
@@ -22,7 +22,7 @@
   }
   header {
     border-bottom: 3px double var(--ink);
-    padding: 48px 32px 20px;
+    padding: 44px 32px 18px;
     text-align: center;
   }
   .kicker {
@@ -35,7 +35,7 @@
   }
   h1 {
     margin: 0;
-    font-size: clamp(28px, 5vw, 52px);
+    font-size: clamp(26px, 4.6vw, 50px);
     font-weight: 700;
     letter-spacing: -0.01em;
   }
@@ -51,13 +51,13 @@
     gap: 10px;
     justify-content: center;
     align-items: center;
-    padding: 18px 32px 0;
+    padding: 16px 32px 0;
     font-family: "Helvetica Neue", Arial, sans-serif;
   }
   button {
     font: inherit;
     font-size: 13px;
-    padding: 7px 14px;
+    padding: 7px 13px;
     border: 1px solid var(--ink);
     background: transparent;
     color: var(--ink);
@@ -65,28 +65,45 @@
     border-radius: 2px;
   }
   button:hover { background: var(--ink); color: var(--paper); }
-  #status {
-    font-size: 13px;
-    color: var(--muted);
-    min-height: 1.2em;
+  #status { font-size: 13px; color: var(--muted); min-height: 1.2em; }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    justify-content: center;
+    padding: 14px 32px 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
   }
+  .chip {
+    font-size: 12px;
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--muted);
+    user-select: none;
+  }
+  .chip .n { opacity: 0.55; margin-left: 5px; }
+  .chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .chip.active .n { opacity: 0.7; }
+
   main {
     columns: 2;
-    column-gap: 48px;
-    padding: 28px 32px 60px;
-    max-width: 1100px;
+    column-gap: 46px;
+    padding: 26px 32px 60px;
+    max-width: 1180px;
     margin: 0 auto;
   }
   ol { list-style: none; margin: 0; padding: 0; }
   li {
     break-inside: avoid;
-    display: grid;
-    grid-template-columns: 2.2rem 1fr auto auto;
-    gap: 10px;
+    display: flex;
     align-items: baseline;
-    padding: 5px 0;
+    gap: 8px;
+    padding: 6px 0;
     border-bottom: 1px solid var(--line);
-    font-size: 15px;
   }
   li.hidden { display: none; }
   .rank {
@@ -94,18 +111,28 @@
     font-size: 12px;
     color: var(--muted);
     text-align: right;
+    flex: 0 0 2.1rem;
   }
-  .title { font-weight: 700; }
-  .years, .col-label {
+  .title { font-weight: 700; flex: 1 1 auto; min-width: 0; }
+  .years, .plats {
     font-family: "Helvetica Neue", Arial, sans-serif;
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--muted);
+    white-space: nowrap;
   }
-  .col-label { display: none; }
-  li.watched .title::after {
-    content: " ✓";
-    color: var(--accent);
+  .plats { text-align: right; flex: 0 1 auto; }
+  li input[type="checkbox"] { flex: 0 0 auto; }
+  .badge {
+    display: inline-block;
+    padding: 1px 7px;
+    margin: 1px 0 1px 3px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    white-space: nowrap;
   }
+  .badge.none { color: var(--accent); border-color: #e3c9c9; }
+  li.watched .title::after { content: " ✓"; color: var(--accent); }
   input[type="checkbox"] { accent-color: var(--accent); }
   footer {
     border-top: 3px double var(--ink);
@@ -115,13 +142,11 @@
     font-size: 12px;
     color: var(--muted);
   }
-  @media (max-width: 720px) {
+  @media (max-width: 780px) {
     main { columns: 1; }
-    li { grid-template-columns: 2rem 1fr auto; }
-    .col-label { display: none; }
   }
   @media print {
-    .tools { display: none; }
+    .tools, .filters { display: none; }
     main { columns: 2; }
     body { background: #fff; }
   }
@@ -131,7 +156,7 @@
 <header>
   <p class="kicker">The New York Times</p>
   <h1>The 100 Best TV Shows of the 21st Century</h1>
-  <p class="source">Explore the list at nytimes.com/bestTV</p>
+  <p class="source">Explore the list at nytimes.com/bestTV &middot; India streaming availability verified October 2026</p>
 </header>
 
 <div class="tools">
@@ -140,147 +165,194 @@
   <span id="status"></span>
 </div>
 
+<div class="filters" id="filters"></div>
+
 <main>
   <ol id="list"></ol>
 </main>
 
-<footer>Interactive checklist &middot; progress saved in this browser</footer>
+<footer>Watchlist progress is saved in this browser</footer>
 
 <script>
+const NONE = "Not streaming in India";
+
+// [title, years, [platforms], note]
 const SHOWS = [
-  ["Breaking Bad","2008-2013"],
-  ["The Wire","2002-2008"],
-  ["Mad Men","2007-2015"],
-  ["Succession","2018-2023"],
-  ["Fleabag","2016-2019"],
-  ["Game of Thrones","2011-2019"],
-  ["Veep","2012-2019"],
-  ["30 Rock","2006-2013"],
-  ["Curb Your Enthusiasm","2000-2024"],
-  ["Atlanta","2016-2022"],
-  ["The Office (U.S.)","2005-2013"],
-  ["Arrested Development","2003-2019"],
-  ["Gits","2012-2017"],
-  ["Friday Night Lights","2006-2011"],
-  ["Six Feet Under","2001-2005"],
-  ["The Office (U.K.)","2001-2003"],
-  ["The Americans","2013-2018"],
-  ["I May Destroy You","2020"],
-  ["Chernobyl","2019"],
-  ["The Crown","2016-2023"],
-  ["The White Lotus","2021-present"],
-  ["Lost","2004-2010"],
-  ["The Comeback","2005-2026"],
-  ["Deadwood","2004-2006"],
-  ["The Leftovers","2014-2017"],
-  ["Black Mirror","2011-present"],
-  ["Better Call Saul","2015-2022"],
-  ["Band of Brothers","2001"],
-  ["Key & Peele","2012-2015"],
-  ["Severance","2022-present"],
-  ["Survivor","2000-present"],
-  ["Andor","2022-2025"],
-  ["Enlightened","2011-2013"],
-  ["Schitt's Creek","2015-2020"],
-  ["True Detective (Season 1)","2014"],
-  ["The Pitt","2025-present"],
-  ["Battlestar Galactica","2005-2009"],
-  ["Homeland","2011-2020"],
-  ["Watchmen","2019"],
-  ["Adolescence","2025"],
-  ["Louie","2010-2015"],
-  ["Hacks","2021-2025"],
-  ["Peaky Blinders","2013-2022"],
-  ["BoJack Horseman","2014-2020"],
-  ["Happy Valley","2014-2023"],
-  ["Broad City","2014-2018"],
-  ["Twin Peaks: The Return","2017"],
-  ["House of Cards","2013-2018"],
-  ["Normal People","2020"],
-  ["Parks and Recreation","2009-2015"],
-  ["The Good Place","2016-2020"],
-  ["Downton Abbey","2010-2015"],
-  ["Stranger Things","2016-2025"],
-  ["The Bureau","2015-2020"],
-  ["Insecure","2021-2025"],
-  ["Nathan for You","2013-2017"],
-  ["I Think You Should Leave","2019-present"],
-  ["Chappelle's Show","2003-2006"],
-  ["PEN15","2019-2021"],
-  ["Peep Show","2003-2015"],
-  ["RuPaul's Drag Race","2009-present"],
-  ["Slow Horses","2022-present"],
-  ["The Thick of It","2005-2012"],
-  ["Anthony Bourdain: Parts Unknown","2013-2018"],
-  ["Mare of Easttown","2021"],
-  ["The Rehearsal","2022-present"],
-  ["The Handmaid's Tale","2017-2025"],
-  ["Ozark","2017-2022"],
-  ["Anthony Bourdain: No Reservations","2005-2012"],
-  ["The Shield","2002-2008"],
-  ["Beef (Season 1)","2023"],
-  ["Squid Game","2021-2025"],
-  ["Barry","2018-2023"],
-  ["The Bear","2022-2026"],
-  ["Ted Lasso","2020-present"],
-  ["Somebody Somewhere","2022-2024"],
-  ["Modern Family","2009-2019"],
-  ["It's Always Sunny in Philadelphia","2005-present"],
-  ["The Good Wife","2009-2016"],
-  ["How To With John Wilson","2020-2023"],
-  ["The Queen's Gambit","2020"],
-  ["Better Things","2016-2022"],
-  ["Justified","2010-2015"],
-  ["Planet Earth","2006"],
-  ["The Great British Baking Show","2010-present"],
-  ["Shogun","2024-present"],
-  ["Reservation Dogs","2021-2023"],
-  ["Dexter","2006-2013"],
-  ["Baby Reindeer","2024"],
-  ["Eastbound & Down","2009-2013"],
-  ["Catastrophe","2015-2019"],
-  ["The Night Of","2016"],
-  ["Station Eleven","2021-2022"],
-  ["The Diplomat","2023-present"],
-  ["House","2004-2012"],
-  ["Halt and Catch Fire","2014-2017"],
-  ["Community","2009-2015"],
-  ["The OA","2016-2019"],
-  ["Gilmore Girls","2000-2007"],
-  ["Scandal","2012-2018"]
+  ["Breaking Bad","2008-2013",["Netflix"],"All 5 seasons"],
+  ["The Wire","2002-2008",["JioHotstar"],"Via HBO bundle"],
+  ["Mad Men","2007-2015",["Lionsgate Play","Prime Video"],"Partial seasons"],
+  ["Succession","2018-2023",["JioHotstar"],"All 4 seasons"],
+  ["Fleabag","2016-2019",["Prime Video"],"Both seasons"],
+  ["Game of Thrones","2011-2019",["JioHotstar"],"All 8 seasons"],
+  ["Veep","2012-2019",["JioHotstar"],"All 7 seasons"],
+  ["30 Rock","2006-2013",["Netflix","JioHotstar"],"All 7 seasons"],
+  ["Curb Your Enthusiasm","2000-2024",["JioHotstar"],"All 12 seasons"],
+  ["Atlanta","2016-2022",[NONE],"FX title"],
+  ["The Office (U.S.)","2005-2013",["Netflix","Prime Video","JioHotstar"],"All 9 seasons"],
+  ["Arrested Development","2003-2019",["JioHotstar"],"5 seasons"],
+  ["Gits","2012-2017",["Prime Video"],"Hindi dub available"],
+  ["Friday Night Lights","2006-2011",[NONE],""],
+  ["Six Feet Under","2001-2005",["JioHotstar"],"All 5 seasons"],
+  ["The Office (U.K.)","2001-2003",[NONE],"BBC, UK only"],
+  ["The Americans","2013-2018",["JioHotstar"],"All 6 seasons"],
+  ["I May Destroy You","2020",["JioHotstar"],"Miniseries"],
+  ["Chernobyl","2019",["JioHotstar"],"5 episodes"],
+  ["The Crown","2016-2023",["Netflix"],"All 6 seasons"],
+  ["The White Lotus","2021-present",["JioHotstar"],"3 seasons"],
+  ["Lost","2004-2010",[NONE],""],
+  ["The Comeback","2005-2026",["JioHotstar"],"Incl. Season 3"],
+  ["Deadwood","2004-2006",[NONE],"Paramount+ not in India"],
+  ["The Leftovers","2014-2017",["JioHotstar"],"3 seasons"],
+  ["Black Mirror","2011-present",["Netflix"],"All seasons"],
+  ["Better Call Saul","2015-2022",["Netflix"],"All 6 seasons"],
+  ["Band of Brothers","2001",["JioHotstar"],"Miniseries"],
+  ["Key & Peele","2012-2015",["JioHotstar"],"Free with ads"],
+  ["Severance","2022-present",["Apple TV+","Prime Video"],"Apple TV add-on in Prime"],
+  ["Survivor","2000-present",["JioHotstar"],"US original"],
+  ["Andor","2022-2025",["JioHotstar"],"2 seasons"],
+  ["Enlightened","2011-2013",["JioHotstar"],"2 seasons"],
+  ["Schitt's Creek","2015-2020",["Lionsgate Play","Prime Video"],"Free with ads on Prime"],
+  ["True Detective (Season 1)","2014",["JioHotstar"],"Season 1"],
+  ["The Pitt","2025-present",["JioHotstar"],""],
+  ["Battlestar Galactica","2005-2009",[NONE],"Peacock exclusive"],
+  ["Homeland","2011-2020",["JioHotstar"],"All 8 seasons"],
+  ["Watchmen","2019",["JioHotstar"],"Miniseries"],
+  ["Adolescence","2025",["Netflix"],"4 episodes"],
+  ["Louie","2010-2015",[NONE],""],
+  ["Hacks","2021-2025",["JioHotstar","Netflix"],"All 5 seasons"],
+  ["Peaky Blinders","2013-2022",["Netflix"],"All 6 seasons"],
+  ["BoJack Horseman","2014-2020",["Netflix"],"All 6 seasons"],
+  ["Happy Valley","2014-2023",["Prime Video"],"Seasons 1-3"],
+  ["Broad City","2014-2018",["JioHotstar"],"5 seasons"],
+  ["Twin Peaks: The Return","2017",["MUBI"],"MUBI / Prime channel"],
+  ["House of Cards","2013-2018",["Netflix"],"6 seasons"],
+  ["Normal People","2020",["Lionsgate Play"],"Miniseries"],
+  ["Parks and Recreation","2009-2015",["JioHotstar"],"All 7 seasons"],
+  ["The Good Place","2016-2020",["Netflix"],"All 4 seasons"],
+  ["Downton Abbey","2010-2015",["JioHotstar"],"Plus specials"],
+  ["Stranger Things","2016-2025",["Netflix"],"All seasons"],
+  ["The Bureau","2015-2020",[NONE],"No India rights"],
+  ["Insecure","2021-2025",["JioHotstar"],"All 5 seasons"],
+  ["Nathan for You","2013-2017",[NONE],""],
+  ["I Think You Should Leave","2019-present",["Netflix"],"3 seasons"],
+  ["Chappelle's Show","2003-2006",[NONE],"Paramount+ rights"],
+  ["PEN15","2019-2021",[NONE],"Hulu/Disney+ exclusive"],
+  ["Peep Show","2003-2015",[NONE],"BBC Three"],
+  ["RuPaul's Drag Race","2009-present",["WOW Presents Plus"],"Left Netflix India Sept 2025"],
+  ["Slow Horses","2022-present",["Apple TV+"],"Free tier with ads"],
+  ["The Thick of It","2005-2012",[NONE],""],
+  ["Anthony Bourdain: Parts Unknown","2013-2018",[NONE],""],
+  ["Mare of Easttown","2021",["JioHotstar"],"Miniseries"],
+  ["The Rehearsal","2022-present",["JioHotstar"],"Seasons 1-3"],
+  ["The Handmaid's Tale","2017-2025",["Prime Video"],"All 6 seasons"],
+  ["Ozark","2017-2022",["Netflix"],"All 4 seasons"],
+  ["Anthony Bourdain: No Reservations","2005-2012",["Prime Video"],"Via Discovery+ channel"],
+  ["The Shield","2002-2008",["Vi Movies & TV"],"Seasons 1-5 only"],
+  ["Beef (Season 1)","2023",["Netflix"],"Season 1 (+ S2)"],
+  ["Squid Game","2021-2025",["Netflix"],"All seasons"],
+  ["Barry","2018-2023",["JioHotstar"],"3 seasons"],
+  ["The Bear","2022-2026",["JioHotstar"],"Seasons 1-3 in India"],
+  ["Ted Lasso","2020-present",["Apple TV+"],"Free with ads"],
+  ["Somebody Somewhere","2022-2024",["JioHotstar"],"3 seasons"],
+  ["Modern Family","2009-2019",["JioHotstar"],"All 11 seasons"],
+  ["It's Always Sunny in Philadelphia","2005-present",["JioHotstar"],"Seasons 1-17"],
+  ["The Good Wife","2009-2016",["Prime Video","JioHotstar"],"All 7 seasons"],
+  ["How To With John Wilson","2020-2023",["JioHotstar"],"3 seasons"],
+  ["The Queen's Gambit","2020",["Netflix"],"Miniseries"],
+  ["Better Things","2016-2022",[NONE],""],
+  ["Justified","2010-2015",["Prime Video"],"Sony Pictures channel"],
+  ["Planet Earth","2006",["SonyLIV"],"Also on Prime channel"],
+  ["The Great British Baking Show","2010-present",[NONE],"Channel 4 original"],
+  ["Shogun","2024-present",["JioHotstar"],""],
+  ["Reservation Dogs","2021-2023",[NONE],"Not licensed in India"],
+  ["Dexter","2006-2013",["Prime Video","JioHotstar"],"All 8 seasons"],
+  ["Baby Reindeer","2024",["Netflix"],"7 episodes"],
+  ["Eastbound & Down","2009-2013",["JioHotstar"],"All 4 seasons"],
+  ["Catastrophe","2015-2019",[NONE],""],
+  ["The Night Of","2016",["JioHotstar"],"8 episodes"],
+  ["Station Eleven","2021-2022",["JioHotstar"],"2 seasons"],
+  ["The Diplomat","2023-present",["Netflix"],"Season 3 in 2026"],
+  ["House","2004-2012",["Netflix","JioHotstar"],"All 8 seasons"],
+  ["Halt and Catch Fire","2014-2017",[NONE],"AMC title"],
+  ["Community","2009-2015",["Netflix","Prime Video"],"Sony Pictures channel on Prime"],
+  ["The OA","2016-2019",["Netflix"],"2 seasons"],
+  ["Gilmore Girls","2000-2007",["Netflix","Prime Video"],""],
+  ["Scandal","2012-2018",[NONE],""]
 ];
 
 const KEY = "nyt-best-tv-100";
 const list = document.getElementById("list");
 const status = document.getElementById("status");
+const filters = document.getElementById("filters");
 let seen = new Set(JSON.parse(localStorage.getItem(KEY) || "[]"));
+let activePlatform = null;
 
-SHOWS.forEach(([title, years], i) => {
+SHOWS.forEach(([title, years, platforms, note], i) => {
   const li = document.createElement("li");
   li.dataset.title = title;
   li.innerHTML =
     '<span class="rank">' + (i + 1) + '.</span>' +
     '<span class="title"></span>' +
-    '<span class="years">' + years + '</span>' +
-    '<span class="col-label">I&#39;VE SEEN IT</span>';
+    '<span class="years" title="' + note + '">' + years + '</span>' +
+    '<span class="plats"></span>';
   li.querySelector(".title").textContent = title;
 
-  const seenBox = document.createElement("input");
-  seenBox.type = "checkbox";
-  seenBox.checked = seen.has(title);
-  seenBox.addEventListener("change", () => {
-    if (seenBox.checked) seen.add(title); else seen.delete(title);
-    li.classList.toggle("watched", seenBox.checked);
+  const plats = li.querySelector(".plats");
+  platforms.forEach(p => {
+    const b = document.createElement("span");
+    b.className = "badge" + (p === NONE ? " none" : "");
+    b.textContent = p;
+    plats.appendChild(b);
+  });
+  li.dataset.platforms = platforms.join("|");
+
+  const box = document.createElement("input");
+  box.type = "checkbox";
+  box.checked = seen.has(title);
+  box.addEventListener("change", () => {
+    if (box.checked) seen.add(title); else seen.delete(title);
+    li.classList.toggle("watched", box.checked);
     save();
   });
-  li.appendChild(seenBox);
-  if (seenBox.checked) li.classList.add("watched");
+  li.appendChild(box);
+  li.classList.toggle("watched", box.checked);
   list.appendChild(li);
 });
 
+// platform filter chips, ordered by how many shows each platform carries
+const counts = {};
+SHOWS.forEach(([, , platforms]) => {
+  platforms.forEach(p => counts[p] = (counts[p] || 0) + 1);
+});
+const ordered = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+ordered.forEach(([p, n]) => {
+  const chip = document.createElement("button");
+  chip.className = "chip";
+  chip.innerHTML = p.replace(/</g, "&lt;") + '<span class="n">' + n + '</span>';
+  chip.addEventListener("click", () => {
+    activePlatform = activePlatform === p ? null : p;
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    if (activePlatform) chip.classList.add("active");
+    applyFilter();
+  });
+  filters.appendChild(chip);
+});
+
+function applyFilter() {
+  let shown = 0;
+  list.querySelectorAll("li").forEach(li => {
+    const match = !activePlatform ||
+      li.dataset.platforms.split("|").includes(activePlatform);
+    li.classList.toggle("hidden", !match);
+    if (match) shown++;
+  });
+  status.textContent = (activePlatform ? activePlatform + " — " : "") +
+    shown + " of 100 shown · " + seen.size + " watched";
+}
+
 function save() {
   localStorage.setItem(KEY, JSON.stringify([...seen]));
-  status.textContent = seen.size + " of 100 watched";
+  applyFilter();
 }
 
 document.getElementById("markAll").addEventListener("click", () => {
@@ -302,7 +374,7 @@ function render() {
   save();
 }
 
-save();
+applyFilter();
 </script>
 </body>
 </html>
