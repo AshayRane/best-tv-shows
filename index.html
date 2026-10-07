@@ -89,6 +89,32 @@
   .chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .chip.active .n { opacity: 0.7; }
 
+  .sortbar {
+    font-size: 13px;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  button.sort { border-color: var(--line); color: var(--muted); padding: 5px 11px; }
+  button.sort.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .grouphead {
+    break-inside: avoid;
+    break-after: avoid-column;
+    list-style: none;
+    margin: 18px 0 2px;
+    padding: 0 0 3px;
+    border-bottom: 2px solid var(--ink);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .grouphead:first-child { margin-top: 0; }
+  .grouphead .gn { color: var(--muted); font-weight: 400; margin-left: 6px; text-transform: none; letter-spacing: 0; }
+
   main {
     columns: 2;
     column-gap: 46px;
@@ -162,6 +188,11 @@
 <div class="tools">
   <button id="markAll">I've seen it all</button>
   <button id="clearAll">Clear all</button>
+  <span class="sortbar">Sort by:
+    <button class="sort active" data-sort="rank">Ranking</button>
+    <button class="sort" data-sort="platform">OTT platform</button>
+    <button class="sort" data-sort="title">A–Z</button>
+  </span>
   <span id="status"></span>
 </div>
 
@@ -286,6 +317,15 @@ const status = document.getElementById("status");
 const filters = document.getElementById("filters");
 let seen = new Set(JSON.parse(localStorage.getItem(KEY) || "[]"));
 let activePlatform = null;
+let activeSort = "rank";
+
+// index shows: platform -> [show indices in rank order]
+const byPlatform = {};
+SHOWS.forEach(([title, years, platforms, note], i) => {
+  platforms.forEach(p => {
+    (byPlatform[p] = byPlatform[p] || []).push(i);
+  });
+});
 
 SHOWS.forEach(([title, years, platforms, note], i) => {
   const li = document.createElement("li");
@@ -320,12 +360,9 @@ SHOWS.forEach(([title, years, platforms, note], i) => {
 });
 
 // platform filter chips, ordered by how many shows each platform carries
-const counts = {};
-SHOWS.forEach(([, , platforms]) => {
-  platforms.forEach(p => counts[p] = (counts[p] || 0) + 1);
-});
-const ordered = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-ordered.forEach(([p, n]) => {
+const counts = Object.entries(byPlatform).map(([p, arr]) => [p, arr.length]);
+counts.sort((a, b) => b[1] - a[1]);
+counts.forEach(([p, n]) => {
   const chip = document.createElement("button");
   chip.className = "chip";
   chip.innerHTML = p.replace(/</g, "&lt;") + '<span class="n">' + n + '</span>';
@@ -333,26 +370,90 @@ ordered.forEach(([p, n]) => {
     activePlatform = activePlatform === p ? null : p;
     document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
     if (activePlatform) chip.classList.add("active");
-    applyFilter();
+    applySortAndFilter();
   });
   filters.appendChild(chip);
 });
 
-function applyFilter() {
+// sorting: returns ordered array of show indices; groups get headers
+function orderFor(sort) {
+  if (sort === "platform") {
+    // group by platform, biggest catalogue first; multi-platform shows
+    // appear under their biggest platform; "Not streaming" groups last
+    const groups = counts.map(([p]) => p);
+    if (!groups.includes(NONE)) groups.push(NONE);
+    const out = [];
+    groups.forEach(p => {
+      (byPlatform[p] || []).forEach(i => { if (!out.includes(i)) out.push(i); });
+    });
+    SHOWS.forEach((_, i) => { if (!out.includes(i)) out.push(i); });
+    return out;
+  }
+  if (sort === "title") {
+    return SHOWS.map((s, i) => [s[0].toLowerCase(), i])
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([, i]) => i);
+  }
+  return SHOWS.map((_, i) => i); // rank
+}
+
+function groupNameFor(sort, index) {
+  if (sort === "platform") {
+    const plats = SHOWS[index][2];
+    // show under the group whose platform list contains it first
+    const group = counts.find(([p]) => plats.includes(p));
+    return group ? group[0] : NONE;
+  }
+  if (sort === "title") return SHOWS[index][0][0].toUpperCase();
+  return null; // rank: no headers
+}
+
+function applySortAndFilter() {
+  const lis = {};
+  list.querySelectorAll("li:not(.grouphead)").forEach(li => lis[li.dataset.title] = li);
+
+  // rebuild the list in one pass so headers always sit before their group
+  while (list.firstChild) list.firstChild.remove();
+
   let shown = 0;
-  list.querySelectorAll("li").forEach(li => {
+  let lastGroup = null;
+  orderFor(activeSort).forEach(i => {
+    const [title, years, platforms] = SHOWS[i];
+    const li = lis[title];
     const match = !activePlatform ||
-      li.dataset.platforms.split("|").includes(activePlatform);
+      platforms.includes(activePlatform);
     li.classList.toggle("hidden", !match);
-    if (match) shown++;
+    if (!match) return;
+    shown++;
+    const group = groupNameFor(activeSort, i);
+    if (group !== null && group !== lastGroup) {
+      const h = document.createElement("li");
+      h.className = "grouphead";
+      const n = byPlatform[group] ? byPlatform[group].length : 0;
+      h.innerHTML = group.replace(/</g, "&lt;") +
+        (activeSort === "platform" ? '<span class="gn">' + n + ' shows</span>' : "");
+      list.appendChild(h);
+      lastGroup = group;
+    }
+    list.appendChild(li);
   });
   status.textContent = (activePlatform ? activePlatform + " — " : "") +
     shown + " of 100 shown · " + seen.size + " watched";
 }
 
+// sort buttons
+document.querySelectorAll("button.sort").forEach(btn => {
+  btn.addEventListener("click", () => {
+    activeSort = btn.dataset.sort;
+    document.querySelectorAll("button.sort").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    applySortAndFilter();
+  });
+});
+
 function save() {
   localStorage.setItem(KEY, JSON.stringify([...seen]));
-  applyFilter();
+  applySortAndFilter();
 }
 
 document.getElementById("markAll").addEventListener("click", () => {
@@ -374,7 +475,7 @@ function render() {
   save();
 }
 
-applyFilter();
+applySortAndFilter();
 </script>
 </body>
 </html>
